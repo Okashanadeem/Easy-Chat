@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+:root {
+  --foreground-rgb: 15, 23, 42;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 241, 245, 249; /* Slightly deeper slate-100 for contrast */
+  
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(226, 232, 240, 0.8);
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --neon-blue: 37, 99, 235;
+}
+
+.dark {
+  --foreground-rgb: 248, 250, 252;
+  --background-start-rgb: 11, 14, 20;
+  --background-end-rgb: 15, 23, 42;
+  
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(30, 41, 59, 0.5);
+  --card-bg: rgba(30, 41, 59, 0.9);
+  --neon-blue: 59, 130, 246;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      rgb(var(--background-start-rgb)),
+      rgb(var(--background-end-rgb))
+    );
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.5s ease, color 0.5s ease;
+  min-height: 100vh;
+}
+
+@layer components {
+  .glass {
+    background-color: var(--glass-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid var(--glass-border);
+  }
+  
+  .glass-card {
+    background-color: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+  }
+
+  .neon-glow {
+    box-shadow: 0 0 20px rgba(var(--neon-blue), 0.1);
+  }
+
+  .neon-glow-strong {
+    box-shadow: 0 0 40px rgba(var(--neon-blue), 0.2);
+  }
+}
+
+/* Custom Scrollbar - Slim & Modern */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(var(--neon-blue), 0.2);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--neon-blue), 0.5);
+}
+
+/* Typography Overrides */
+.prose {
+  max-width: none;
+}
+
+.prose code {
+  background-color: rgba(var(--neon-blue), 0.08);
+  color: rgb(var(--neon-blue));
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.4rem;
+  font-weight: 700;
+  font-size: 0.85em;
+}
+
+.prose a {
+  color: rgb(var(--neon-blue));
+  font-weight: 900;
+  text-decoration: none;
+  border-bottom: 2px solid rgba(var(--neon-blue), 0.2);
+  transition: all 0.2s;
+}
+
+.prose a:hover {
+  border-bottom-color: rgb(var(--neon-blue));
+  background-color: rgba(var(--neon-blue), 0.05);
+}
