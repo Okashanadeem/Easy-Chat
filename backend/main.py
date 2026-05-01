@@ -16,20 +16,37 @@ from database import db
 from utils import chunk_text, extract_text_from_pdf, cosine_similarity
 from models import ChatRequest
 
-load_dotenv()
+load_dotenv(override=True)
 
 # Configure Gemini
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+api_key = os.getenv("GEMINI_API_KEY")
+if not api_key:
+    print("❌ ERROR: GEMINI_API_KEY not found in environment variables!")
+else:
+    print(f"✅ GEMINI_API_KEY loaded: {api_key[:5]}...{api_key[-5:]}")
+
+genai.configure(api_key=api_key)
 embedding_model = "models/gemini-embedding-001"
-chat_model = genai.GenerativeModel("gemini-flash-latest")
 
+# Safety Settings to avoid "Violation" blocks for academic content
+from google.generativeai.types import HarmCategory, HarmBlockThreshold
+safety_settings = {
+    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+}
 
+chat_model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    safety_settings=safety_settings
+)
 
 app = FastAPI(title="Easy Chat API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -257,19 +274,22 @@ Just ask questions in English or Roman Urdu! For example: *"Jani, DLD ki assignm
             filter_query = {"metadata.document_id": str(best_doc["_id"])}
 
         try:
-            pipeline = [
-                {"$vectorSearch": {
-                    "index": "vector_index", 
-                    "path": "embedding", 
-                    "queryVector": query_embedding, 
-                    "numCandidates": 100, 
-                    "limit": 8,
-                    "filter": filter_query if filter_query else None
-                }}
-            ]
-            cursor = db.embeddings.aggregate([p for p in pipeline if p["$vectorSearch"]["filter"] is not None or (p["$vectorSearch"].pop("filter") or True)])
+            # Construct pipeline cleanly
+            vector_search = {
+                "index": "vector_index", 
+                "path": "embedding", 
+                "queryVector": query_embedding, 
+                "numCandidates": 100, 
+                "limit": 8
+            }
+            if filter_query:
+                vector_search["filter"] = filter_query
+            
+            pipeline = [{"$vectorSearch": vector_search}]
+            cursor = db.embeddings.aggregate(pipeline)
             relevant_chunks = await cursor.to_list(length=8)
-        except Exception:
+        except Exception as e:
+            print(f"VECTOR SEARCH ERROR (Falling back to manual): {e}")
             query = {"metadata.document_id": str(best_doc["_id"])} if best_doc and highest_doc_score > 0.55 else {}
             all_embeddings = await db.embeddings.find(query).to_list(length=1000)
             scored = []
@@ -346,7 +366,18 @@ Just ask questions in English or Roman Urdu! For example: *"Jani, DLD ki assignm
         for attempt in range(2):
             try:
                 response = chat_model.generate_content(full_prompt)
-                clean_content = response.text.strip().replace('Answer: ', '').replace('Assistant: ', '')
+                
+                # Check if the response was blocked by safety filters
+                try:
+                    clean_content = response.text.strip().replace('Answer: ', '').replace('Assistant: ', '')
+                except ValueError:
+                    # Handle blocked response
+                    return {
+                        "role": "assistant",
+                        "content": "I'm sorry, but that request triggered my safety filters. Yaar, let's keep it academic! Try rephrasing your question.",
+                        "source": "Safety Filter"
+                    }
+
                 result = {
                     "role": "assistant", 
                     "content": clean_content,

@@ -50,11 +50,15 @@ export default function AdminPage() {
     setIsLoading(true);
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/admin/documents`);
+      if (!response.ok) throw new Error("Failed to fetch documents");
       const data = await response.json();
       setDocuments(data);
       const nb = data.find((d: Document) => d.user_type === "Notice Board");
       if (nb) setNoticeContent(nb.content);
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error(e); 
+      setStatus({ type: "error", message: "Failed to load datasets. Is the backend running?" });
+    }
     finally { setIsLoading(false); }
   };
 
@@ -72,14 +76,20 @@ export default function AdminPage() {
       submissionData.append("user_type", "Notice Board");
       submissionData.append("text_content", noticeContent);
 
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/admin/documents`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/admin/documents`, {
         method: "POST",
         body: submissionData,
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to sync");
+      }
+
       alert("Notice Board Synced with AI! 🚀");
       fetchDocuments();
-    } catch (e) { 
-      alert("Failed to sync Notice Board. ❌");
+    } catch (e: any) { 
+      alert(`Failed to sync Notice Board: ${e.message} ❌`);
     }
     finally { setIsSavingNotice(false); }
   };
@@ -94,15 +104,21 @@ export default function AdminPage() {
       submissionData.append("user_type", "Notice Board");
       submissionData.append("text_content", ""); // Empty content wipes memory
 
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/admin/documents`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/admin/documents`, {
         method: "POST",
         body: submissionData,
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to clear");
+      }
+
       setNoticeContent("");
       alert("Notice Board Memory Cleared! 🧹");
       fetchDocuments();
-    } catch (e) { 
-      alert("Failed to clear Notice Board.");
+    } catch (e: any) { 
+      alert(`Failed to clear Notice Board: ${e.message}`);
     }
     finally { setIsSavingNotice(false); }
   };
@@ -118,14 +134,20 @@ export default function AdminPage() {
       submissionData.append("user_type", formData.user_type);
       if (selectedFile) submissionData.append("file", selectedFile);
 
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/admin/documents`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/admin/documents`, {
         method: "POST",
         body: submissionData,
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Upload failed");
+      }
+
       setStatus({ type: "success", message: `Data Set '${formData.user_type}' Synced!` });
       setIsModalOpen(false);
       fetchDocuments();
-    } catch (e: any) { setStatus({ type: "error", message: e.message }); }
+    } catch (e: any) { setStatus({ type: "error", message: e.message || "Failed to sync document." }); }
     finally { setIsSubmitting(false); }
   };
 

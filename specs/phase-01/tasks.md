@@ -22,3 +22,7 @@
 - [x] **T004: Basic Integration**
     - [x] Connect Frontend fetch calls to Backend mock endpoints.
     - [x] Implement loading states and error handling in UI.
+- [x] **T005: Stability & Safety Fixes**
+    - [x] Configure Gemini safety settings for academic content.
+    - [x] Implement robust error handling for blocked AI responses.
+    - [x] Surface backend errors in Admin Dashboard for better debugging.
