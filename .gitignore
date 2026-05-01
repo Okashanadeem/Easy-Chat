@@ -1,0 +1,24 @@
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv/
+.env/
+
+# Node.js
+node_modules/
+.next/
+dist/
+build/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
