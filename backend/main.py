@@ -38,7 +38,7 @@ safety_settings = {
 }
 
 chat_model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
+    model_name="gemini-flash-latest",
     safety_settings=safety_settings
 )
 
