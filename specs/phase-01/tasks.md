@@ -1,0 +1,23 @@
+# Phase 1 Tasks: Foundation & UI
+
+- [x] **T001: Project Initialization**
+    - [x] Initialize Next.js frontend in `/frontend`.
+    - [x] Initialize FastAPI backend in `/backend`.
+    - [x] Create `.env.example` files for both.
+- [x] **T002: Base UI Components**
+    - [x] Set up Tailwind CSS configuration.
+    - [x] Create `ChatMessage` and `ChatInput` components.
+    - [x] Build the main `ChatWindow` layout.
+    - [x] Create basic `AdminDashboard` layout with an upload placeholder.
+    - [x] Secure `/admin` route with password protection (`admin123`) using Middleware.
+    - [x] Perfect Login Page UI with glassmorphism and animations.
+    - [x] Update home page greeting to "How can I assist you today?" (Academic & System focused).
+    - [x] Implement unique and funny dynamic loading messages for the AI response.
+    - [x] Localize assistant greeting and add Roman Urdu/Hinglish support in backend.
+- [x] **T003: Backend Boilerplate**
+    - [x] Set up basic FastAPI entry point (`main.py`).
+    - [x] Configure CORS to allow requests from the frontend.
+    - [x] Create a `/health` and a mock `/chat` endpoint.
+- [x] **T004: Basic Integration**
+    - [x] Connect Frontend fetch calls to Backend mock endpoints.
+    - [x] Implement loading states and error handling in UI.
