@@ -18,6 +18,7 @@
     - [x] Set up basic FastAPI entry point (`main.py`).
     - [x] Configure CORS to allow requests from the frontend.
     - [x] Create a `/health` and a mock `/chat` endpoint.
+    - [x] Add root health route and personified error messages for Zeno.
 - [x] **T004: Basic Integration**
     - [x] Connect Frontend fetch calls to Backend mock endpoints.
     - [x] Implement loading states and error handling in UI.

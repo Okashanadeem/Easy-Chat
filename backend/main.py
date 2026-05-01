@@ -35,6 +35,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+async def root():
+    return {"status": "ok", "message": "Easy Chat API is running"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
 def get_retry_seconds(e: Exception) -> int:
     """Aggressive retry time extraction from Gemini errors."""
     error_msg = str(e)
@@ -180,7 +188,34 @@ async def chat_endpoint(request: ChatRequest):
     try:
         search_query = request.message.strip().lower()
         history = request.history or []
-        
+
+        # 0. Handle Slash Commands
+        if search_query.startswith("/"):
+            if search_query == "/help":
+                help_text = """
+### 🤖 Zeno Command Guide
+I'm here to help you navigate BSSE Fall 2025! Here are the commands you can use:
+
+- `/help` - Show this guide
+- `/drive` - Quick link to our Class Google Drive
+- `/leave` - Apply for Leave (Leave Portal)
+- `/links` - Open the SMIU Links Hub
+- `/clear` - (Frontend) Clear your chat history
+
+**How to use me:**
+Just ask questions in English or Roman Urdu! For example: *"Jani, DLD ki assignment kab tak deni hai?"* or *"When is the next holiday?"*
+                """
+                return {"role": "assistant", "content": help_text}
+            
+            elif search_query == "/drive":
+                return {"role": "assistant", "content": "📂 **Class Google Drive:** [Access Materials Here](https://drive.google.com/drive/folders/your_folder_id)\n\nYou can find all slides, assignments, and notes here."}
+            
+            elif search_query == "/leave":
+                return {"role": "assistant", "content": "📝 **Leave Application Portal:** [Submit your leave here](https://easy-chat-api-one.vercel.app)\n\nPlease ensure you provide a valid reason for your leave request."}
+            
+            elif search_query == "/links":
+                return {"role": "assistant", "content": "🔗 **SMIU Links Hub:** [Explore Links](https://linksmiu.netlify.app)\n\nOne-stop shop for all SMIU related websites."}
+
         # 0. Check Cache First (Only for fresh queries with no meaningful history)
         # We consider history of length 1 (just the assistant intro) as a fresh start
         if len(history) <= 1 and search_query in chat_cache:
@@ -193,7 +228,7 @@ async def chat_endpoint(request: ChatRequest):
             query_embedding = query_embedding_result['embedding']
         except Exception as e:
             if "429" in str(e) or "quota" in str(e).lower():
-                return {"role": "assistant", "content": "Answer: AI can't reply currently.", "retry_after": get_retry_seconds(e)}
+                return {"role": "assistant", "content": "Zeno isn't available currently, please try again later.", "retry_after": get_retry_seconds(e)}
             raise e
         
         # 2. MATCHING DATASET (The "Router")
@@ -252,7 +287,7 @@ async def chat_endpoint(request: ChatRequest):
                     relevant_chunks.append(dc)
 
         if not relevant_chunks and not (best_doc and highest_doc_score > 0.5):
-            return {"role": "assistant", "content": "Answer: I couldn't find that in my records. Try checking the [SMIU Links Hub](https://linksmiu.netlify.app)."}
+            return {"role": "assistant", "content": "Hmm, I couldn't find that in my records. Yaar, maybe try checking the [SMIU Links Hub](https://linksmiu.netlify.app)?"}
 
         # 4. Assembly
         context_str = ""
@@ -334,7 +369,7 @@ async def chat_endpoint(request: ChatRequest):
         is_quota = "429" in str(e) or "quota" in str(e).lower()
         return {
             "role": "assistant",
-            "content": "Answer: AI can't reply currently." if is_quota else "Answer: I encountered an error.",
+            "content": "Zeno isn't available currently, please try again later." if is_quota else "Zeno encountered a slight hiccup, please try again in a bit!",
             "retry_after": get_retry_seconds(e) if is_quota else 0
         }
 

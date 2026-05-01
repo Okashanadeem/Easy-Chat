@@ -48,10 +48,10 @@ export default function ChatPage() {
 
   // Perfect Starter Questions
   const starters = [
-    { title: "New Student?", desc: "How to start with CAMS", icon: Sparkles },
-    { title: "Drive Map", desc: "Show Google Drive hierarchy", icon: HelpCircle },
-    { title: "Official Links", desc: "Find CMS, Portal & Hub", icon: Sparkles },
-    { title: "Submit Leave", desc: "How to apply for leave", icon: HelpCircle },
+    { title: "New Student?", desc: "How to start with CAMS", command: "How to start with CAMS", icon: Sparkles },
+    { title: "Drive Map", desc: "Show Google Drive hierarchy", command: "Show Google Drive hierarchy", icon: HelpCircle },
+    { title: "Official Links", desc: "Find Portal & Links Hub", command: "/links", icon: Sparkles },
+    { title: "Submit Leave", desc: "Apply via Leave Portal", command: "/leave", icon: HelpCircle },
   ];
 
   const [loadingMessage, setLoadingMessage] = useState("Processing...");
@@ -60,7 +60,7 @@ export default function ChatPage() {
     "Consulting the CR's brain...",
     "Searching for GPA secrets...",
     "Waking up the SMIU servers...",
-    "Checking CMS for updates...",
+    "Preparing the Leave Portal...",
     "Bribing the algorithm with chai...",
   ];
 
@@ -95,6 +95,18 @@ export default function ChatPage() {
 
   const handleSendMessage = async (content: string) => {
     if (retryTimer && retryTimer > 0) return;
+
+    // Handle /clear command locally
+    if (content.trim().toLowerCase() === "/clear") {
+      setMessages([
+        {
+          role: "assistant",
+          content:
+            "Assalam-o-Alaikum! 👋 I'm **Zeno**, your AI Classroom Assistant, developed by **Okasha Nadeem** (CR of BSSE Fall 2025). Main yahan aapki class resources, assignments, aur portal links mein help karne ke liye hoon. How can I assist you today?",
+        },
+      ]);
+      return;
+    }
 
     const userMessage: Message = { role: "user", content };
     setMessages((prev) => [...prev, userMessage]);
@@ -181,7 +193,7 @@ export default function ChatPage() {
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.1 * idx }}
-                      onClick={() => handleSendMessage(item.desc)}
+                      onClick={() => handleSendMessage(item.command)}
                       className="group relative text-left p-4 md:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl hover:border-blue-500 transition-all duration-300 shadow-xl shadow-slate-200/50 dark:shadow-black/20 hover:-translate-y-1"
                     >
                       <div className="flex flex-col md:flex-row items-start gap-3 md:gap-4">

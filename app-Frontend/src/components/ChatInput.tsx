@@ -9,6 +9,9 @@ interface ChatInputProps {
 }
 
 const SUGGESTIONS = [
+  "Try /help for all commands",
+  "Try /drive for class materials",
+  "Try /leave to apply for leave",
   "Where is assignment 02 of DLD?",
   "Where can I submit leave?",
   "What is Academic Nexus?",
@@ -17,13 +20,31 @@ const SUGGESTIONS = [
   "Who is the CR of BSSE Fall 2025?",
 ];
 
+const COMMANDS = [
+  { cmd: "/help", desc: "Show all commands & help guide" },
+  { cmd: "/drive", desc: "Get Class Google Drive link" },
+  { cmd: "/leave", desc: "Apply for Leave (Leave Portal)" },
+  { cmd: "/links", desc: "Open SMIU Links Hub" },
+  { cmd: "/clear", desc: "Clear current chat history" },
+];
+
 export default function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [placeholder, setPlaceholder] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [loopNum, setLoopNum] = useState(0);
   const [typingSpeed, setTypingSpeed] = useState(100);
+  const [showCommands, setShowCommands] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    // Show command palette if message starts with /
+    if (message.startsWith("/")) {
+      setShowCommands(true);
+    } else {
+      setShowCommands(false);
+    }
+  }, [message]);
 
   useEffect(() => {
     const handleTyping = () => {
@@ -57,6 +78,12 @@ export default function ChatInput({ onSendMessage, isLoading }: ChatInputProps) 
     }
   }, [message]);
 
+  const handleCommandClick = (cmd: string) => {
+    onSendMessage(cmd);
+    setMessage("");
+    setShowCommands(false);
+  };
+
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
     if (message.trim() && !isLoading) {
@@ -70,10 +97,43 @@ export default function ChatInput({ onSendMessage, isLoading }: ChatInputProps) 
       e.preventDefault();
       handleSubmit();
     }
+    // Simple command navigation could be added here later
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4">
+    <div className="w-full max-w-4xl mx-auto px-4 relative">
+      {/* Command Palette */}
+      {showCommands && (
+        <div className="absolute bottom-full left-4 right-4 mb-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200 z-50">
+          <div className="p-3 border-b border-slate-100 dark:border-slate-800/50 bg-slate-50/50 dark:bg-slate-800/50">
+            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2">
+              Zeno Commands
+            </p>
+          </div>
+          <div className="max-h-60 overflow-y-auto p-1.5">
+            {COMMANDS.filter(c => c.cmd.startsWith(message.toLowerCase())).map((item) => (
+              <button
+                key={item.cmd}
+                onClick={() => handleCommandClick(item.cmd)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 text-left transition-colors group"
+              >
+                <span className="text-sm font-bold text-blue-600 dark:text-blue-400 font-mono">
+                  {item.cmd}
+                </span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
+                  {item.desc}
+                </span>
+              </button>
+            ))}
+            {COMMANDS.filter(c => c.cmd.startsWith(message.toLowerCase())).length === 0 && (
+              <div className="p-4 text-center">
+                <p className="text-sm text-slate-500 dark:text-slate-400">No command found for "{message}"</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="relative">
         <form 
           onSubmit={handleSubmit} 
