@@ -42,7 +42,18 @@ chat_model = genai.GenerativeModel(
     safety_settings=safety_settings
 )
 
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
 app = FastAPI(title="Easy Chat API")
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    print(f"❌ VALIDATION ERROR: {exc.errors()}")
+    return JSONResponse(
+        status_code=400,
+        content={"detail": exc.errors(), "body": str(exc)},
+    )
 
 app.add_middleware(
     CORSMiddleware,
