@@ -49,6 +49,12 @@ app = FastAPI(title="Easy Chat API")
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
+    # Log the request body to see what's being sent
+    try:
+        body = await request.body()
+        print(f"❌ VALIDATION ERROR ON BODY: {body.decode()}")
+    except:
+        pass
     print(f"❌ VALIDATION ERROR: {exc.errors()}")
     return JSONResponse(
         status_code=400,
@@ -57,7 +63,7 @@ async def validation_exception_handler(request, exc):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["*"], # Temporarily allow all for production debugging
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
